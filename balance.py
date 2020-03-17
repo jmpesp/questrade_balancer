@@ -159,11 +159,11 @@ class QuestradeBalancer(object):
                         for x in balances["perCurrencyBalances"]
                         if x["currency"] == "CAD"][0]
 
-        print "Total buying power:", buying_power
+        print("Total buying power:", buying_power)
 
         if len(sys.argv) > 1:
             buying_power = int(sys.argv[1])
-            print "buying power set to", buying_power
+            print("buying power set to", buying_power)
 
         total_position_value = 0
         total_profit_and_losses = 0
@@ -173,10 +173,10 @@ class QuestradeBalancer(object):
             if position["openPnl"]:
                 total_profit_and_losses += position["openPnl"]
 
-        print "Total position value:", total_position_value
-        print "Total profits / losses:", total_profit_and_losses
+        print("Total position value:", total_position_value)
+        print("Total profits / losses:", total_profit_and_losses)
 
-        print ""
+        print("")
 
         total_spent = 0
 
@@ -184,27 +184,27 @@ class QuestradeBalancer(object):
         # percentages.
         for position in positions:
             if position["currentMarketValue"]:
-                if position["symbol"] not in portfolio["symbols"].keys():
-                    print position["symbol"], "held but not in portfolio.json!"
+                if position["symbol"] not in list(portfolio["symbols"].keys()):
+                    print(position["symbol"], "held but not in portfolio.json!")
                     continue
 
                 target_percent = portfolio["symbols"][position["symbol"]]["percent"]
 
-                print position["symbol"], "at", position["currentPrice"]
+                print(position["symbol"], "at", position["currentPrice"])
 
                 target_value = (total_position_value+buying_power)*target_percent
                 actual_value = position["currentMarketValue"]
 
-                print "value: target {} actual {}".format(target_value,
-                                                          actual_value)
+                print("value: target {} actual {}".format(target_value,
+                                                          actual_value))
 
-                print "value difference: {}".format(actual_value - target_value)
+                print("value difference: {}".format(actual_value - target_value))
 
                 if target_value > actual_value:
                     buy_order = (target_value-actual_value)/position["currentPrice"]
                     buy_order = int(buy_order)
                     if buy_order != 0:
-                        print "could buy", buy_order
+                        print("could buy", buy_order)
                         #try:
                         #    self.buy(account["number"],
                         #             position["symbolId"],
@@ -218,11 +218,11 @@ class QuestradeBalancer(object):
                     sell_order = (actual_value-target_value)/position["currentPrice"]
                     sell_order = int(sell_order)
                     if sell_order != 0:
-                        print "could sell", sell_order
+                        print("could sell", sell_order)
 
-                print ""
+                print("")
 
-        print("total spent: {}".format(total_spent))
+        print(("total spent: {}".format(total_spent)))
 
 
 if __name__ == "__main__":
