@@ -179,6 +179,7 @@ class QuestradeBalancer(object):
         print("")
 
         total_spent = 0
+        total_sold = 0
 
         # iterate over positions, and buy or sell to bring back to portfolio
         # percentages.
@@ -219,10 +220,13 @@ class QuestradeBalancer(object):
                     sell_order = int(sell_order)
                     if sell_order != 0:
                         print("could sell", sell_order)
+                        total_sold += sell_order * position["currentPrice"]
 
                 print("")
 
-        print(("total spent: {}".format(total_spent)))
+        print("total spent: {}".format(total_spent))
+        print("total sold: {}".format(total_sold))
+        print("total diff: {}".format(total_sold - total_spent))
 
 
 if __name__ == "__main__":
