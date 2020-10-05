@@ -59,9 +59,10 @@ class QuestradeBalancer(object):
             self.login_creds["api_server"] = \
                 self.login_creds["api_server"][:-1]
 
-    def get(self, url):
+    def get(self, url, params={}):
         resp = self.session.get(self.login_creds["api_server"] + url,
-                                headers=self.headers)
+                                headers=self.headers,
+                                params=params)
         resp.raise_for_status()
         return resp.json()
 
@@ -84,6 +85,22 @@ class QuestradeBalancer(object):
         #print json.dumps(params, indent=2)
         return self.post("/v1/accounts/{}/orders".format(account_id),
                          params)
+
+    def get_symbol_price(self, symbol):
+        params = {
+            "prefix": symbol,
+        }
+        resp = self.get("/v1/symbols/search", params)
+
+        assert len(resp["symbols"]) == 1
+
+        symbolId = resp["symbols"][0]["symbolId"]
+
+        resp = self.get("/v1/markets/quotes/{}".format(symbolId))
+
+        assert len(resp["quotes"]) == 1
+
+        return resp["quotes"][0]["bidPrice"]
 
     def balance(self):
         """Get portfolio, and buy / sell to maintain the allocations."""
@@ -181,7 +198,7 @@ class QuestradeBalancer(object):
         total_spent = 0
         total_sold = 0
 
-        # iterate over positions, and buy or sell to bring back to portfolio
+        # iterate over held positions, and buy or sell to bring back to portfolio
         # percentages.
         for position in positions:
             if position["currentMarketValue"]:
@@ -223,6 +240,22 @@ class QuestradeBalancer(object):
                         total_sold += sell_order * position["currentPrice"]
 
                 print("")
+
+        # now, for positions not held yet
+        for symbol in list(portfolio["symbols"].keys()):
+            if symbol not in [x["symbol"] for x in positions]:
+                print("{} is new!".format(symbol))
+
+                price = self.get_symbol_price(symbol)
+                print("price is {}".format(price))
+
+                target_percent = portfolio["symbols"][symbol]["percent"]
+
+                target_value = (total_position_value+buying_power)*target_percent
+
+                buy_order = int(target_value/price)
+
+                print("could buy {}".format(buy_order))
 
         print("total spent: {}".format(total_spent))
         print("total sold: {}".format(total_sold))
